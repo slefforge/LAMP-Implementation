@@ -21,38 +21,20 @@ from .utils import (fraction_threshold,
                     flatten_importances,
                     importance_masks,
                     activation_importance)
+from ..util.lamp_unil import lamp_importances
 
 
-class LAMP(VisionPruning):
 
-    def model_masks(self):
-        importances = map_importances(np.abs, self.params())
-        
-        flat_importances = flatten_importances(importances)
-        
-        threshold = fraction_threshold(flat_importances, self.fraction)
-        
-        masks = importance_masks(importances, threshold)
-         
-        file = open("debugging/masks.txt", "wb")
-        pickle.dump(masks, file)
-        file.close()
-        file = open("debugging/importances.txt", "wb")
-        pickle.dump(importances, file)
-        file.close()
-        print("success")
-        exit()
-        # see debug.py for this section        
-        
-        return masks
 
 class GlobalMagWeight(VisionPruning):
 
     def model_masks(self):
         importances = map_importances(np.abs, self.params())
+        j = self.params()
         flat_importances = flatten_importances(importances)
         threshold = fraction_threshold(flat_importances, self.fraction)
         masks = importance_masks(importances, threshold)
+        print(masks.items())
         return masks
 
 
@@ -118,3 +100,26 @@ class LayerMagAct(ActivationMixin, LayerPruning, VisionPruning):
         masks = {param: fraction_mask(importances[param], self.fraction)
                  for param, value in params.items() if value is not None}
         return masks
+
+# class LAMP(VisionPruning):
+#
+#     def model_masks(self):
+#         importances = map_importances(np.abs, self.params())
+#
+#         flat_importances = flatten_importances(importances)
+#
+#         threshold = fraction_threshold(flat_importances, self.fraction)
+#
+#         masks = importance_masks(importances, threshold)
+#
+#         file = open("debugging/masks.txt", "wb")
+#         pickle.dump(masks, file)
+#         file.close()
+#         file = open("debugging/importances.txt", "wb")
+#         pickle.dump(importances, file)
+#         file.close()
+#         print("success")
+#         exit()
+#         # see debug.py for this section
+#
+#         return masks

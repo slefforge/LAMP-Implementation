@@ -8,15 +8,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def prune():
-    os.environ['DATAPATH'] = './data'
-    for strategy in ['LAMP']: #['RandomPruning', 'GlobalMagWeight', 'LayerMagWeight']:
+    os.environ['DATAPATH'] = './famous_datasets/'
+    for strategy in ['Lamp']: #['RandomPruning', 'GlobalMagWeight', 'LayerMagWeight']:
         print(strategy)
-        for  c in [4]: #[1,2,4,8,16,32,64]:
-            exp = PruningExperiment(dataset='CIFAR10', 
-                                    model='resnet20',
+        for c in [4]: #[1,2,4,8,16,32,64]:
+            exp = PruningExperiment(dataset='MNIST',
+                                    model='MnistNet',
                                     strategy=strategy,
                                     compression=c,
-                                    train_kwargs={'epochs':1})
+                                    train_kwargs={'epochs':1}, pretrained=False)
             exp.run()
             clear_output()
     df = df_from_results('results')
