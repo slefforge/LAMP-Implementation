@@ -1,0 +1,9 @@
+,module,param,comp,size,shape,prunable
+0,conv1,weight,inf,500,"(20, 1, 5, 5)",True
+1,conv1,bias,inf,20,"(20,)",True
+2,conv2,weight,274.7252739773825,25000,"(50, 20, 5, 5)",True
+3,conv2,bias,inf,50,"(50,)",True
+4,fc1,weight,246.00246084521706,400000,"(500, 800)",True
+5,fc1,bias,249.99998812563774,500,"(500,)",True
+6,fc2,weight,1.0,5000,"(10, 500)",False
+7,fc2,bias,1.0,10,"(10,)",False

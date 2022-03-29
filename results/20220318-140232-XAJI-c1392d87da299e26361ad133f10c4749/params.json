@@ -1,0 +1,4 @@
+{
+    "experiment": "'PruningExperiment'",
+    "params": "{'dataset': 'MNIST', 'model': 'MnistNet', 'seed': 42, 'path': None, 'dl_kwargs': {'batch_size': 128, 'pin_memory': False, 'num_workers': 8}, 'train_kwargs': {'optim': 'SGD', 'epochs': 20, 'lr': 0.001}, 'debug': False, 'pretrained': False, 'resume': None, 'resume_optim': False, 'save_freq': 10, 'strategy': 'Lamp', 'compression': 4}"
+}
