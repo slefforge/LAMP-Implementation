@@ -35,7 +35,12 @@ class PruningExperiment(TrainingExperiment):
     def apply_pruning(self, strategy, compression):
         constructor = getattr(strategies, strategy)
         x, y = next(iter(self.train_dl))
-        self.pruning = constructor(self.model, x, y, compression=compression)
+        device = self.to_device()
+        print(device)
+        if strategy == 'Snip':
+            self.pruning = constructor(self.model, self.loss_func, self.train_dl, self.device, inputs=x, outputs=y, compression=compression)
+        else:
+            self.pruning = constructor(self.model, x, y, compression=compression)
         self.pruning.apply()
         printc("Masked model", color='GREEN')
 

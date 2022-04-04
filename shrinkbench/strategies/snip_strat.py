@@ -12,43 +12,51 @@ from shrinkbench.strategies import map_importances, flatten_importances, fractio
 import torch
 
 
-# noinspection PyMethodOverriding
-class Snip(VisionPruning):
 
-    def model_masks(self):
-        importances = map_importances(self.snip_importances, self.model())
+
+# noinspection PyMethodOverriding
+
+class Snip(VisionPruning):
+    def __init__(self, model, loss, dataloader, device,  inputs, outputs, compression=0.0):
+        super().__init__(model, inputs, outputs, compression)
+        self.model = model
+        self.loss = loss
+        self.dataloader = dataloader
+        self.device = device
+
+    def model_masks(self, model, loss, dataloader, device):
+        importances = self.snip_importances()
         flat_importances = flatten_importances(importances)
         threshold = fraction_threshold(flat_importances, self.fraction)
         masks = importance_masks(importances, threshold)
         return masks
 
     def snip_importances(self, model, loss, dataloader, device):
-    #     masked_params = self.masked_parameters(model)
+        masked_params = self.masked_parameters(model)
 
-    #     # allow masks to have gradient
-    #     for m, _ in self.masked_parameters:
-    #         m.requires_grad = True
+        # allow masks to have gradient
+        for m, _ in self.masked_parameters:
+            m.requires_grad = True
 
-    #     # compute gradient
-    #     for batch_idx, (data, target) in enumerate(dataloader):
-    #         data, target = data.to(device), target.to(device)
-    #         output = model(data)
-    #         loss(output, target).backward()
+        # compute gradient
+        for batch_idx, (data, target) in enumerate(dataloader):
+            data, target = data.to(device), target.to(device)
+            output = self.model(data)
+            self.loss(output, target).backward()
 
-    #     # calculate score |g * theta|
-    #     for m, p in self.masked_parameters:
-    #         self.scores[id(p)] = torch.clone(m.grad).detach().abs_()
-    #         p.grad.data.zero_()
-    #         m.grad.data.zero_()
-    #         m.requires_grad = False
+        # calculate score |g * theta|
+        for m, p in self.masked_parameters:
+            self.scores[id(p)] = torch.clone(m.grad).detach().abs_()
+            p.grad.data.zero_()
+            m.grad.data.zero_()
+            m.requires_grad = False
 
-    #     # normalize score
-    #     all_scores = torch.cat([torch.flatten(v) for v in self.scores.values()])
-    #     norm = torch.sum(all_scores)
-    #     for _, p in self.masked_parameters:
-    #         self.scores[id(p)].div_(norm)
+        # normalize score
+        all_scores = torch.cat([torch.flatten(v) for v in self.scores.values()])
+        norm = torch.sum(all_scores)
+        for _, p in self.masked_parameters:
+            self.scores[id(p)].div_(norm)
 
-        return 0
 
     def prunable(self, module, batchnorm, residual):
         r"""Returns boolean whether a module is prunable.

@@ -62,7 +62,7 @@ def flatten_importances(importances):
     ])
 
 
-def map_importances(fn, importances):
+def map_importances(fn, importances): #garbage name importances means parameters
     return {module:
             {param: fn(importance)
                 for param, importance in params.items()}

@@ -61,6 +61,7 @@ class TrainingExperiment(Experiment):
 
         self.path = path
         self.save_freq = save_freq
+        self.device = self.to_device()
 
     def run(self):
         self.freeze()
@@ -123,11 +124,12 @@ class TrainingExperiment(Experiment):
 
     def to_device(self):
         # Torch CUDA config
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if not torch.cuda.is_available():
             printc("GPU NOT AVAILABLE, USING CPU!", color="ORANGE")
-        self.model.to(self.device)
+        self.model.to(device)
         cudnn.benchmark = True   # For fast training.
+        return device
 
     def checkpoint(self):
         checkpoint_path = self.path / 'checkpoints'
