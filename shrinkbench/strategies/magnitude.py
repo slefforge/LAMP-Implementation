@@ -8,8 +8,6 @@ so that overall desired compression is achieved
 """
 
 import numpy as np
-import torch
-import pickle
 
 from ..pruning import (LayerPruning,
                        VisionPruning,
@@ -21,20 +19,31 @@ from .utils import (fraction_threshold,
                     flatten_importances,
                     importance_masks,
                     activation_importance)
-from ..util.lamp_unil import lamp_importances
-
-
 
 
 class GlobalMagWeight(VisionPruning):
 
     def model_masks(self):
         importances = map_importances(np.abs, self.params())
-        j = self.params()
         flat_importances = flatten_importances(importances)
         threshold = fraction_threshold(flat_importances, self.fraction)
         masks = importance_masks(importances, threshold)
-        print(masks.items())
+        return masks
+    
+
+# Deprecated because bias is no longer included in any pruning method
+class GlobalMagNoBias(VisionPruning):
+
+    def model_masks(self):
+        importances = map_importances_no_bias(np.abs, self.params())
+        flat_importances = flatten_importances(importances)
+        threshold = fraction_threshold(flat_importances, self.fraction)
+        masks = importance_masks(importances, threshold)
+        
+        param_dict = self.params()
+        for module in param_dict:
+            if 'bias' in param_dict[module]:
+                masks[module]['bias'] = np.ones_like(param_dict[module]['bias'])
         return masks
 
 
@@ -47,6 +56,19 @@ class LayerMagWeight(LayerPruning, VisionPruning):
                  for param, value in params.items() if value is not None}
         return masks
 
+
+# Deprecated
+class LayerMagNoBias(LayerPruning, VisionPruning):
+
+    def layer_masks(self, module):
+        params = self.module_params(module)
+        importances = {param: np.abs(value) for param, value in params.items() if param=='weight'}
+        masks = {param: fraction_mask(importances[param], self.fraction)
+                 for param, value in params.items() if value is not None and param=='weight'}
+        if 'bias' in params:
+            masks['bias'] = np.ones_like(params['bias'])
+        return masks
+    
 
 class GlobalMagGrad(GradientMixin, VisionPruning):
 
@@ -100,26 +122,10 @@ class LayerMagAct(ActivationMixin, LayerPruning, VisionPruning):
         masks = {param: fraction_mask(importances[param], self.fraction)
                  for param, value in params.items() if value is not None}
         return masks
-
-# class LAMP(VisionPruning):
-#
-#     def model_masks(self):
-#         importances = map_importances(np.abs, self.params())
-#
-#         flat_importances = flatten_importances(importances)
-#
-#         threshold = fraction_threshold(flat_importances, self.fraction)
-#
-#         masks = importance_masks(importances, threshold)
-#
-#         file = open("debugging/masks.txt", "wb")
-#         pickle.dump(masks, file)
-#         file.close()
-#         file = open("debugging/importances.txt", "wb")
-#         pickle.dump(importances, file)
-#         file.close()
-#         print("success")
-#         exit()
-#         # see debug.py for this section
-#
-#         return masks
+    
+    
+def map_importances_no_bias(fn, importances):
+    return {module:
+            {param: fn(importance)
+                for param, importance in params.items() if param=='weight'}
+            for module, params in importances.items()}

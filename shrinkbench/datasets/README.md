@@ -16,13 +16,13 @@ For instance the path variable `/path/to/small:/other/path/to/large` would be ab
 ```
 /path/to/small
 ├── MNIST
-│   └── MNIST
+│   └── MNIST
 ├── CIFAR10
-│   ├── cifar-10-batches-py
-│   └── cifar-10-python.tar.gz
+│   ├── cifar-10-batches-py
+│   └── cifar-10-python.tar.gz
 └── CIFAR100
-    ├── cifar-100-python
-    └── cifar-100-python.tar.gz
+    ├── cifar-100-python
+    └── cifar-100-python.tar.gz
 
 /other/path/to/large
 ├── ILSVRC2012

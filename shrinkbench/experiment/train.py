@@ -61,7 +61,9 @@ class TrainingExperiment(Experiment):
 
         self.path = path
         self.save_freq = save_freq
-        self.device = self.to_device()
+
+        #hook_handels
+        self.hook_handels = []
 
     def run(self):
         self.freeze()
@@ -90,6 +92,7 @@ class TrainingExperiment(Experiment):
                 raise ValueError(f"Model {model} not available in custom models or torchvision models")
 
         self.model = model
+
 
         if resume is not None:
             self.resume = pathlib.Path(self.resume)
@@ -124,12 +127,11 @@ class TrainingExperiment(Experiment):
 
     def to_device(self):
         # Torch CUDA config
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if not torch.cuda.is_available():
             printc("GPU NOT AVAILABLE, USING CPU!", color="ORANGE")
-        self.model.to(device)
+        self.model.to(self.device)
         cudnn.benchmark = True   # For fast training.
-        return device
 
     def checkpoint(self):
         checkpoint_path = self.path / 'checkpoints'
@@ -176,7 +178,7 @@ class TrainingExperiment(Experiment):
         acc5 = OnlineStats()
 
         epoch_iter = tqdm(dl)
-        epoch_iter.set_description(f"{prefix.capitalize()} Epoch {epoch}/{self.epochs}")
+        epoch_iter.set_description(f"{prefix.capitalize()} Epoch {epoch + 1}/{self.epochs}")
 
         with torch.set_grad_enabled(train):
             for i, (x, y) in enumerate(epoch_iter, start=1):
@@ -223,3 +225,5 @@ class TrainingExperiment(Experiment):
         
         assert isinstance(self.params['model'], str), f"\nUnexpected model inputs: {self.params['model']}"
         return json.dumps(self.params, indent=4)
+
+

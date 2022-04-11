@@ -43,7 +43,6 @@ def dataset_path(dataset, path=None):
 
     for p in paths:
         p = (p / dataset).resolve()
-        print(p)
         if p.exists():
             print(f"Found {dataset} under {p}")
             return p
@@ -77,7 +76,6 @@ def dataset_builder(dataset, train=True, normalize=None, preproc=None, path=None
         kwargs['split'] = 'train' if train else 'val'
     else:
         kwargs['train'] = train
-    kwargs['download'] = True
 
     path = dataset_path(dataset, path)
 

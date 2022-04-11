@@ -6,7 +6,7 @@ import pandas as pd
 
 from .mask import mask_module
 from .modules import MaskedModule
-from .utils import get_params
+from .utils import get_params, get_cnn_input_sizes
 
 
 class Pruning(ABC):
@@ -30,6 +30,7 @@ class Pruning(ABC):
         self.model = model
         self.inputs = inputs
         self.outputs = outputs
+        self.cnn_input_sizes = get_cnn_input_sizes(model, inputs)
         self.pruning_params = list(pruning_params.keys())
         for k, v in pruning_params.items():
             setattr(self, k, v)
@@ -79,12 +80,13 @@ class Pruning(ABC):
         rows = []
         for name, module in self.model.named_modules():
             for pname, param in module.named_parameters(recurse=False):
-                if isinstance(module, MaskedModule):
-                    compression = 1/getattr(module, pname+'_mask').detach().cpu().numpy().mean()
-                else:
-                    compression = 1
-                shape = param.detach().cpu().numpy().shape
-                rows.append([name, pname, compression, np.prod(shape), shape, self.can_prune(module)])
+                if pname == 'weight':
+                    if isinstance(module, MaskedModule):
+                        compression = 1/getattr(module, pname+'_mask').detach().cpu().numpy().mean()
+                    else:    
+                        compression = 1
+                    shape = param.detach().cpu().numpy().shape
+                    rows.append([name, pname, compression, np.prod(shape), shape, self.can_prune(module)])
         columns = ['module', 'param', 'comp', 'size', 'shape', 'prunable']
         return pd.DataFrame(rows, columns=columns)
 
@@ -92,7 +94,7 @@ class Pruning(ABC):
 class LayerPruning(Pruning):
 
     @abstractmethod
-    def layer_masks(self, module):
+    def layer_masks(self, module, layer=None):
         """Instead of implementing masks for the entire model at once
         User needs to specify a layer_masks fn that can be applied layerwise
 
@@ -109,10 +111,16 @@ class LayerPruning(Pruning):
         masks = OrderedDict()
         if prunable is None:
             prunable = self.prunable_modules()
-
-        for module in prunable:
-            masks_ = self.layer_masks(module)
-            if masks_ is not None:
-                masks[module] = masks_
+            
+        if type(self).__name__ == 'LayerLAP':
+            for i, module in enumerate(prunable):
+                masks_ = self.layer_masks(module, i)
+                if masks_ is not None:
+                    masks[module] = masks_
+        else:
+            for module in prunable:
+                masks_ = self.layer_masks(module)
+                if masks_ is not None:
+                    masks[module] = masks_
 
         return masks

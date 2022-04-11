@@ -22,8 +22,8 @@ class Experiment(ABC):
         self._params = {"experiment": self.__class__.__name__, 'params': {}}
         self.seed = seed
         self.frozen = False
-        # signal.signal(signal.SIGINT, self.SIGINT_handler)
-        # signal.signal(signal.SIGQUIT, self.SIGQUIT_handler)
+        signal.signal(signal.SIGINT, self.SIGINT_handler)
+        #signal.signal(signal.SIGQUIT, self.SIGQUIT_handler)
 
     def add_params(_self, **kwargs):
         if not _self.frozen:

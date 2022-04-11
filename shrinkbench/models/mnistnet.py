@@ -14,13 +14,31 @@ class MnistNet(nn.Module):
     def __init__(self, pretrained=False):
         assert not pretrained, f"{self.__class__.__name__} does not support pretrained weights"
         super(MnistNet, self).__init__()
+        """
         self.conv1 = nn.Conv2d(1, 20, 5, 1)
         self.conv2 = nn.Conv2d(20, 50, 5, 1)
         self.fc1 = nn.Linear(4*4*50, 500)
         self.fc2 = nn.Linear(500, 10)
         self.fc2.is_classifier = True
+        """
+        
+        layers = []
+        layers += [nn.Conv2d(1, 20, 5, 1)]
+        layers += [nn.ReLU()]
+        layers += [nn.MaxPool2d(2, 2)]
+        layers += [nn.Conv2d(20, 50, 5, 1)]
+        layers += [nn.ReLU()]
+        layers += [nn.MaxPool2d(2, 2)]
+        layers += [nn.Flatten()]
+        layers += [nn.Linear(4*4*50, 500)]
+        layers += [nn.ReLU()]
+        layers += [nn.Linear(500, 10)]
+        self.layers = nn.Sequential(*layers)
+        self.layers[-1].is_classifier = True
 
     def forward(self, x):
+        """
+        return self.layers(x)
         x = F.relu(self.conv1(x))
         x = F.max_pool2d(x, 2, 2)
         x = F.relu(self.conv2(x))
@@ -29,6 +47,9 @@ class MnistNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
+        """
+        
+        return self.layers(x)
 
 
 class LeNet(nn.Module):

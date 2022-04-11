@@ -35,10 +35,8 @@ class PruningExperiment(TrainingExperiment):
     def apply_pruning(self, strategy, compression):
         constructor = getattr(strategies, strategy)
         x, y = next(iter(self.train_dl))
-        device = self.to_device()
-        print(device)
-        if strategy == 'Snip':
-            self.pruning = constructor(self.model, self.loss_func, self.train_dl, self.device, inputs=x, outputs=y, compression=compression)
+        if strategy == 'OptimalBrainDamage':
+            self.pruning = constructor(self.model, x, y, compression=compression, dataset=self.train_dataset)
         else:
             self.pruning = constructor(self.model, x, y, compression=compression)
         self.pruning.apply()
@@ -52,7 +50,7 @@ class PruningExperiment(TrainingExperiment):
 
         self.save_metrics()
 
-        if self.pruning.compression > 1:
+        if self.pruning.compression >= 1:
             self.run_epochs()
 
     def save_metrics(self):

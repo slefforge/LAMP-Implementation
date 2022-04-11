@@ -62,7 +62,7 @@ def flatten_importances(importances):
     ])
 
 
-def map_importances(fn, importances): #garbage name importances means parameters
+def map_importances(fn, importances):
     return {module:
             {param: fn(importance)
                 for param, importance in params.items()}
@@ -70,8 +70,11 @@ def map_importances(fn, importances): #garbage name importances means parameters
 
 
 def importance_masks(importances, threshold):
-    j = importances
     return map_importances(lambda imp: threshold_mask(imp, threshold), importances)
+    # return {module:
+    #         {param: threshold_mask(importance, threshold)
+    #             for param, importance in params.items()}
+    #         for module, params  in importances.items()}
 
 
 def norms_tensor(tensor, ord, matrix_mode=False):
@@ -105,7 +108,6 @@ def activation_importance(weight, activation, norm=1):
     else:
         # for bias
         return weight * norms.mean()
-
 
 
 # def largest_norm_channel_mask(tensor, fraction, ord=1, matrix_mode=False):

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def prune():
     os.environ['DATAPATH'] = './famous_datasets/'
-    for strategy in ['Snip']: #'Lamp', 'GlobalMagWeight', 'LayerMagWeight']:
+    for strategy in ['Lamp']: #'Lamp', 'GlobalMagWeight', 'LayerMagWeight']:
         print(strategy)
         for c in [1,2,4,8,16,32,64]:
             exp = PruningExperiment(dataset='MNIST',
